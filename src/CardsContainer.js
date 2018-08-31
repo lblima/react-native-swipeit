@@ -1,6 +1,12 @@
 //import liraries
 import React, { Component } from 'react';
-import { View } from 'react-native';
+import { 
+        View, 
+        StyleSheet, 
+        Dimensions 
+    } from 'react-native';
+
+const SCREEN_WIDTH = Dimensions.get('window').width;
 
 // create a component
 class CardsContainer extends Component {
@@ -8,11 +14,14 @@ class CardsContainer extends Component {
     renderCards() {
         return this.props.data.map((item, index) => {
             return (
-                <View key={item.id}>
+                <View 
+                    style={styles.cardStyle}
+                    key={item.id}
+                >
                     {this.props.renderCard(item)}
                 </View>
             )
-        });
+        }).reverse();
     }
 
     render() {
@@ -23,6 +32,14 @@ class CardsContainer extends Component {
         );
     }
 }
+
+// define your styles
+const styles = StyleSheet.create({
+    cardStyle: {
+        position: 'absolute',
+        width: SCREEN_WIDTH
+    },
+});
 
 //make this component available to the app
 export default CardsContainer;
