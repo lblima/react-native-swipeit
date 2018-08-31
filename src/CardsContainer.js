@@ -2,13 +2,18 @@
 import React, { Component } from 'react';
 import { 
         View, 
+        Text,
         StyleSheet, 
         Dimensions,
         Animated,
-        PanResponder
+        PanResponder,
+        LayoutAnimation,
+        UIManager
     } from 'react-native';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
+const SWIPE_THRESHOLD = SCREEN_WIDTH * 0.40;
+const SWIPE_OUT_DURATION = 250;
 
 // create a component
 class CardsContainer extends Component {
@@ -23,11 +28,41 @@ class CardsContainer extends Component {
                 position.setValue({ x: gesture.dx, y: gesture.dy });
             },
             onPanResponderRelease: (event, gesture) => {
-               
+                if (gesture.dx > SWIPE_THRESHOLD)
+                    this.completeSwipe('right');
+                else if (gesture.dx < -SWIPE_THRESHOLD)
+                    this.completeSwipe('left');
+                else
+                    this.resetPosition();
             }
         });
 
         this.state = { panResponder, position, index: 0 };
+    }
+
+    componentWillUpdate() {
+        UIManager.setLayoutAnimationEnabledExperimental && UIManager.setLayoutAnimationEnabledExperimental(true);
+        LayoutAnimation.spring();
+    }
+    
+    completeSwipe(direction) {
+        const x = (direction === 'right' ? SCREEN_WIDTH + 50 : -SCREEN_WIDTH - 50);
+        
+        Animated.timing(this.state.position, {
+            toValue: { x, y: 0 },
+            duration: SWIPE_OUT_DURATION
+        }).start(() => this.onCompleteSwipe(direction));
+    }
+
+    onCompleteSwipe() {
+        this.setState({ index: this.state.index + 1 });
+        this.state.position.setValue({ x: 0, y: 0 });
+    }
+
+    resetPosition() {
+        Animated.spring(this.state.position, {
+            toValue: { x: 0, y: 0 }
+        }).start();
     }
 
     getCardStyle() {
@@ -46,6 +81,17 @@ class CardsContainer extends Component {
     }
     
     renderCards() {
+        if (this.state.index >= this.props.data.length) {
+            return (
+                <View>
+                    <Text>
+                        No more cards!
+                    </Text>
+                </View>
+            )
+        }
+
+
         return this.props.data.map((item, index) => {
             if (index < this.state.index)
                 return null;
