@@ -30,25 +30,46 @@ class CardsContainer extends Component {
         this.state = { panResponder, position, index: 0 };
     }
 
+    getCardStyle() {
+        const { position } = this.state;
+        const rotationX = SCREEN_WIDTH * 2;
+
+        const rotate = position.x.interpolate({
+            inputRange: [-rotationX, 0, rotationX],
+            outputRange: ['-120deg', '0deg', '120deg']
+        });
+
+        return {
+            ...position.getLayout(),
+            transform: [{ rotate }]
+        }
+    }
+    
     renderCards() {
         return this.props.data.map((item, index) => {
+            if (index < this.state.index)
+                return null;
+                
             //Add animation only to the card on top
             if (index === this.state.index) {
                 return (
                     <Animated.View 
-                        style={[styles.cardStyle, this.state.position.getLayout()]}
+                        style={[
+                            styles.cardStyle,
+                            this.getCardStyle()
+                        ]}
                         {...this.state.panResponder.panHandlers}
                         key={item.id}
                     >
                         {this.props.renderCard(item)}
                     </Animated.View>
-                )
+                );
             }
 
             return (
                 <Animated.View 
-                    style={styles.cardStyle}
                     key={item.id}
+                    style={[styles.cardStyle, {transform: [{ rotate: '0deg'}]}, { top: 10 * (index - this.state.index) }]}
                 >
                     {this.props.renderCard(item)}
                 </Animated.View>
